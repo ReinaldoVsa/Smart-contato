@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <meta name="description" content="Smart Asset Wallet - Saque, transferência e troca de ativos blockchain" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="SmartWallet" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <title>Smart Asset Wallet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- Splash Screen -->
+  <div id="splash" class="splash">
+    <div class="splash-logo">
+      <div class="logo-hex">
+        <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M30 2L55 17V43L30 58L5 43V17L30 2Z" stroke="url(#grad1)" stroke-width="2" fill="none"/>
+          <path d="M30 10L47 20V40L30 50L13 40V20L30 10Z" fill="url(#grad2)" opacity="0.3"/>
+          <text x="22" y="36" font-size="18" fill="white" font-family="monospace" font-weight="bold">S</text>
+          <defs>
+            <linearGradient id="grad1" x1="0" y1="0" x2="60" y2="60">
+              <stop offset="0%" stop-color="#00f5a0"/>
+              <stop offset="100%" stop-color="#00d9f5"/>
+            </linearGradient>
+            <linearGradient id="grad2" x1="0" y1="0" x2="60" y2="60">
+              <stop offset="0%" stop-color="#00f5a0"/>
+              <stop offset="100%" stop-color="#00d9f5"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <span class="splash-title">SmartWallet</span>
+    </div>
+    <div class="splash-bar"><div class="splash-progress"></div></div>
+  </div>
+
+  <!-- App Shell -->
+  <div id="app" class="app hidden">
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <div class="logo-small">
+          <svg viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" width="28" height="28">
+            <path d="M15 1L27 8.5V21.5L15 29L3 21.5V8.5L15 1Z" stroke="url(#hg)" stroke-width="1.5" fill="none"/>
+            <text x="11" y="20" font-size="10" fill="white" font-family="monospace" font-weight="bold">S</text>
+            <defs><linearGradient id="hg" x1="0" y1="0" x2="30" y2="30"><stop offset="0%" stop-color="#00f5a0"/><stop offset="100%" stop-color="#00d9f5"/></linearGradient></defs>
+          </svg>
+        </div>
+        <span class="app-name">SmartWallet</span>
+      </div>
+      <div class="header-right">
+        <div class="network-badge" id="networkBadge">
+          <span class="net-dot"></span>
+          <span id="networkName">Desconectado</span>
+        </div>
+        <button class="icon-btn" id="settingsBtn" title="Configurações">⚙</button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+
+      <!-- Connect Screen -->
+      <section id="connectScreen" class="screen active">
+        <div class="connect-hero">
+          <div class="orbit-ring">
+            <div class="orbit-icon">🔗</div>
+          </div>
+          <h1 class="hero-title">Conecte sua<br/><span class="gradient-text">Carteira</span></h1>
+          <p class="hero-sub">Acesse seus ativos smart contract com segurança total via WalletConnect v2</p>
+        </div>
+        <div class="connect-options">
+          <button class="btn-primary" id="walletConnectBtn">
+            <span class="btn-icon">📱</span>
+            Conectar com WalletConnect
+          </button>
+          <div class="divider"><span>ou</span></div>
+          <button class="btn-secondary" id="manualConnectBtn">
+            <span class="btn-icon">🔑</span>
+            Inserir Endereço Manual
+          </button>
+        </div>
+        <div id="manualInput" class="manual-input hidden">
+          <input type="text" id="walletAddressInput" class="input-field" placeholder="0x... endereço da carteira" />
+          <select id="networkSelect" class="input-field">
+            <option value="1">Ethereum Mainnet</option>
+            <option value="137">Polygon</option>
+            <option value="56">BNB Chain</option>
+            <option value="42161">Arbitrum One</option>
+            <option value="10">Optimism</option>
+            <option value="8453">Base</option>
+            <option value="43114">Avalanche</option>
+          </select>
+          <input type="text" id="contractInput" class="input-field" placeholder="0x... endereço do contrato (opcional)" />
+          <button class="btn-primary" id="connectManualBtn">Conectar</button>
+        </div>
+      </section>
+
+      <!-- Dashboard Screen -->
+      <section id="dashboardScreen" class="screen">
+        <!-- Wallet Info -->
+        <div class="wallet-card">
+          <div class="wallet-card-bg"></div>
+          <div class="card-top">
+            <span class="card-label">Carteira Conectada</span>
+            <button class="disconnect-btn" id="disconnectBtn">Sair</button>
+          </div>
+          <div class="wallet-address-display" id="walletAddressDisplay">0x0000...0000</div>
+          <div class="card-network" id="cardNetwork">Ethereum Mainnet</div>
+          <div class="card-balances">
+            <div class="balance-item">
+              <span class="bal-label">Saldo Nativo</span>
+              <span class="bal-value" id="nativeBalance">--</span>
+              <span class="bal-symbol" id="nativeSymbol">ETH</span>
+            </div>
+            <div class="balance-divider"></div>
+            <div class="balance-item">
+              <span class="bal-label">Token</span>
+              <span class="bal-value" id="tokenBalance">--</span>
+              <span class="bal-symbol" id="tokenSymbol">---</span>
+            </div>
+          </div>
+          <button class="refresh-btn" id="refreshBtn">↻ Atualizar</button>
+        </div>
+
+        <!-- Contract Section -->
+        <div class="section-card">
+          <div class="section-header">
+            <span class="section-icon">📜</span>
+            <h3 class="section-title">Contrato Smart</h3>
+          </div>
+          <div class="contract-input-row">
+            <input type="text" id="contractAddress" class="input-field" placeholder="0x... endereço do contrato" />
+            <button class="btn-accent-sm" id="loadContractBtn">Carregar</button>
+          </div>
+          <div id="contractInfo" class="contract-info hidden">
+            <div class="info-row"><span>Nome:</span><span id="contractName">--</span></div>
+            <div class="info-row"><span>Símbolo:</span><span id="contractSymbol">--</span></div>
+            <div class="info-row"><span>Decimais:</span><span id="contractDecimals">--</span></div>
+            <div class="info-row"><span>Saldo:</span><span id="contractBalance">--</span></div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="actions-grid">
+          <button class="action-card" id="withdrawActionBtn">
+            <span class="action-icon">⬇</span>
+            <span class="action-label">Saque</span>
+          </button>
+          <button class="action-card" id="transferActionBtn">
+            <span class="action-icon">➡</span>
+            <span class="action-label">Transferir</span>
+          </button>
+          <button class="action-card" id="swapActionBtn">
+            <span class="action-icon">⇄</span>
+            <span class="action-label">Trocar</span>
+          </button>
+          <button class="action-card" id="historyActionBtn">
+            <span class="action-icon">📋</span>
+            <span class="action-label">Histórico</span>
+          </button>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="section-card">
+          <div class="section-header">
+            <span class="section-icon">⚡</span>
+            <h3 class="section-title">Transações Recentes</h3>
+          </div>
+          <div id="txList" class="tx-list">
+            <div class="empty-state">Nenhuma transação ainda</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Withdraw Screen -->
+      <section id="withdrawScreen" class="screen">
+        <div class="screen-header">
+          <button class="back-btn" data-target="dashboardScreen">← Voltar</button>
+          <h2 class="screen-title">Saque</h2>
+        </div>
+        <div class="form-card">
+          <div class="tab-bar">
+            <button class="tab active" data-tab="withdraw-native">Nativo</button>
+            <button class="tab" data-tab="withdraw-token">Token ERC-20</button>
+            <button class="tab" data-tab="withdraw-contract">Contrato</button>
+          </div>
+          <div id="withdraw-native" class="tab-content active">
+            <div class="form-group">
+              <label>Valor (ETH/Native)</label>
+              <div class="input-with-max">
+                <input type="number" id="withdrawNativeAmount" class="input-field" placeholder="0.0" step="any" min="0" />
+                <button class="max-btn" id="maxNativeBtn">MAX</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Endereço Destino</label>
+              <input type="text" id="withdrawNativeTo" class="input-field" placeholder="0x..." />
+            </div>
+            <div class="gas-info" id="nativeGasInfo"></div>
+            <button class="btn-primary btn-danger" id="withdrawNativeBtn">
+              <span>⬇ Executar Saque</span>
+            </button>
+          </div>
+          <div id="withdraw-token" class="tab-content">
+            <div class="form-group">
+              <label>Contrato do Token</label>
+              <input type="text" id="withdrawTokenContract" class="input-field" placeholder="0x..." />
+              <button class="btn-sm" id="loadWithdrawTokenBtn">Carregar Token</button>
+            </div>
+            <div id="tokenWithdrawInfo" class="token-info hidden">
+              <span id="twName">--</span> (<span id="twSymbol">--</span>) · Saldo: <span id="twBalance">--</span>
+            </div>
+            <div class="form-group">
+              <label>Valor</label>
+              <div class="input-with-max">
+                <input type="number" id="withdrawTokenAmount" class="input-field" placeholder="0.0" step="any" min="0" />
+                <button class="max-btn" id="maxTokenBtn">MAX</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Endereço Destino</label>
+              <input type="text" id="withdrawTokenTo" class="input-field" placeholder="0x..." />
+            </div>
+            <button class="btn-primary btn-danger" id="withdrawTokenBtn">
+              <span>⬇ Sacar Token</span>
+            </button>
+          </div>
+          <div id="withdraw-contract" class="tab-content">
+            <p class="help-text">Chame funções de saque diretamente no contrato inteligente.</p>
+            <div class="form-group">
+              <label>Endereço do Contrato</label>
+              <input type="text" id="withdrawContractAddr" class="input-field" placeholder="0x..." />
+            </div>
+            <div class="form-group">
+              <label>Função (ex: withdraw, claim, harvest)</label>
+              <input type="text" id="withdrawFunctionName" class="input-field" placeholder="withdraw" value="withdraw" />
+            </div>
+            <div class="form-group">
+              <label>ABI da Função (JSON)</label>
+              <textarea id="withdrawABI" class="input-field textarea" placeholder='[{"name":"withdraw","type":"function","inputs":[{"name":"amount","type":"uint256"}],"outputs":[]}]'></textarea>
+            </div>
+            <div class="form-group">
+              <label>Parâmetros (separados por vírgula)</label>
+              <input type="text" id="withdrawParams" class="input-field" placeholder="1000000000000000000" />
+            </div>
+            <button class="btn-primary btn-danger" id="withdrawContractBtn">
+              <span>⬇ Executar no Contrato</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Transfer Screen -->
+      <section id="transferScreen" class="screen">
+        <div class="screen-header">
+          <button class="back-btn" data-target="dashboardScreen">← Voltar</button>
+          <h2 class="screen-title">Transferir Ativo</h2>
+        </div>
+        <div class="form-card">
+          <div class="tab-bar">
+            <button class="tab active" data-tab="transfer-eth">Nativo</button>
+            <button class="tab" data-tab="transfer-erc20">ERC-20</button>
+            <button class="tab" data-tab="transfer-nft">NFT (ERC-721)</button>
+          </div>
+          <div id="transfer-eth" class="tab-content active">
+            <div class="form-group">
+              <label>Endereço Destino</label>
+              <input type="text" id="transferEthTo" class="input-field" placeholder="0x..." />
+            </div>
+            <div class="form-group">
+              <label>Valor</label>
+              <div class="input-with-max">
+                <input type="number" id="transferEthAmount" class="input-field" placeholder="0.0" step="any" min="0" />
+                <button class="max-btn" id="maxTransferEthBtn">MAX</button>
+              </div>
+            </div>
+            <div class="gas-estimate" id="transferEthGas"></div>
+            <button class="btn-primary" id="transferEthBtn">➡ Transferir</button>
+          </div>
+          <div id="transfer-erc20" class="tab-content">
+            <div class="form-group">
+              <label>Contrato do Token</label>
+              <div class="input-row">
+                <input type="text" id="transferTokenAddr" class="input-field" placeholder="0x..." />
+                <button class="btn-sm" id="loadTransferTokenBtn">OK</button>
+              </div>
+            </div>
+            <div id="transferTokenInfo" class="token-info hidden">
+              <span id="ttName">--</span> · Saldo: <span id="ttBalance">--</span>
+            </div>
+            <div class="form-group">
+              <label>Endereço Destino</label>
+              <input type="text" id="transferERC20To" class="input-field" placeholder="0x..." />
+            </div>
+            <div class="form-group">
+              <label>Valor</label>
+              <div class="input-with-max">
+                <input type="number" id="transferERC20Amount" class="input-field" placeholder="0.0" step="any" min="0" />
+                <button class="max-btn" id="maxTransferERC20Btn">MAX</button>
+              </div>
+            </div>
+            <button class="btn-primary" id="transferERC20Btn">➡ Transferir Token</button>
+          </div>
+          <div id="transfer-nft" class="tab-content">
+            <div class="form-group">
+              <label>Contrato NFT</label>
+              <input type="text" id="transferNFTAddr" class="input-field" placeholder="0x..." />
+            </div>
+            <div class="form-group">
+              <label>Token ID</label>
+              <input type="number" id="transferNFTId" class="input-field" placeholder="1" min="0" />
+            </div>
+            <div class="form-group">
+              <label>Endereço Destino</label>
+              <input type="text" id="transferNFTTo" class="input-field" placeholder="0x..." />
+            </div>
+            <button class="btn-primary" id="transferNFTBtn">➡ Transferir NFT</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Swap Screen -->
+      <section id="swapScreen" class="screen">
+        <div class="screen-header">
+          <button class="back-btn" data-target="dashboardScreen">← Voltar</button>
+          <h2 class="screen-title">Trocar / Vender Token</h2>
+        </div>
+        <div class="form-card">
+          <div class="swap-box">
+            <div class="swap-from">
+              <label>De</label>
+              <div class="swap-token-row">
+                <select id="swapFromToken" class="input-field select-token">
+                  <option value="native">Nativo (ETH/MATIC...)</option>
+                  <option value="custom">Token Customizado</option>
+                </select>
+              </div>
+              <div id="swapFromCustom" class="hidden">
+                <input type="text" id="swapFromAddr" class="input-field" placeholder="Contrato do token" />
+              </div>
+              <div class="input-with-max">
+                <input type="number" id="swapFromAmount" class="input-field" placeholder="0.0" step="any" min="0" />
+                <button class="max-btn" id="maxSwapFromBtn">MAX</button>
+              </div>
+            </div>
+            <button class="swap-arrow-btn" id="swapDirectionBtn">⇅</button>
+            <div class="swap-to">
+              <label>Para</label>
+              <div class="swap-token-row">
+                <select id="swapToToken" class="input-field select-token">
+                  <option value="native">Nativo (ETH/MATIC...)</option>
+                  <option value="custom">Token Customizado</option>
+                </select>
+              </div>
+              <div id="swapToCustom" class="hidden">
+                <input type="text" id="swapToAddr" class="input-field" placeholder="Contrato do token" />
+              </div>
+              <input type="number" id="swapToAmount" class="input-field" placeholder="0.0 (estimado)" readonly />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Slippage (%)</label>
+            <div class="slippage-btns">
+              <button class="slip-btn active" data-slip="0.5">0.5%</button>
+              <button class="slip-btn" data-slip="1">1%</button>
+              <button class="slip-btn" data-slip="3">3%</button>
+              <input type="number" id="customSlippage" class="input-field slip-input" placeholder="Custom" min="0.1" max="50" step="0.1" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Endereço Destino (opcional)</label>
+            <input type="text" id="swapRecipient" class="input-field" placeholder="Padrão: sua carteira" />
+          </div>
+          <div class="swap-route" id="swapRoute"></div>
+          <button class="btn-primary btn-swap" id="getQuoteBtn">🔍 Obter Cotação</button>
+          <button class="btn-primary hidden" id="executeSwapBtn">⇄ Executar Swap</button>
+        </div>
+      </section>
+
+      <!-- History Screen -->
+      <section id="historyScreen" class="screen">
+        <div class="screen-header">
+          <button class="back-btn" data-target="dashboardScreen">← Voltar</button>
+          <h2 class="screen-title">Histórico</h2>
+        </div>
+        <div class="filter-row">
+          <button class="filter-btn active" data-filter="all">Todas</button>
+          <button class="filter-btn" data-filter="send">Envio</button>
+          <button class="filter-btn" data-filter="receive">Recebimento</button>
+          <button class="filter-btn" data-filter="swap">Swap</button>
+        </div>
+        <div id="historyList" class="history-list">
+          <div class="empty-state">Nenhuma transação no histórico</div>
+        </div>
+      </section>
+
+      <!-- Settings Screen -->
+      <section id="settingsScreen" class="screen">
+        <div class="screen-header">
+          <button class="back-btn" data-target="dashboardScreen">← Voltar</button>
+          <h2 class="screen-title">Configurações</h2>
+        </div>
+
+        <div class="settings-group">
+          <h3 class="settings-group-title">🔑 API Credentials</h3>
+          <div class="form-group">
+            <label>Alchemy API Key</label>
+            <div class="input-eye-row">
+              <input type="password" id="alchemyApiKey" class="input-field" placeholder="Sua Alchemy API Key" />
+              <button class="eye-btn" data-target="alchemyApiKey">👁</button>
+            </div>
+            <small>Obtenha em <a href="https://www.alchemy.com" target="_blank" rel="noopener">alchemy.com</a></small>
+          </div>
+          <div class="form-group">
+            <label>WalletConnect Project ID</label>
+            <div class="input-eye-row">
+              <input type="password" id="walletConnectProjectId" class="input-field" placeholder="Seu WalletConnect Project ID" />
+              <button class="eye-btn" data-target="walletConnectProjectId">👁</button>
+            </div>
+            <small>Obtenha em <a href="https://cloud.walletconnect.com" target="_blank" rel="noopener">cloud.walletconnect.com</a></small>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <h3 class="settings-group-title">🌐 Rede Padrão</h3>
+          <div class="form-group">
+            <label>Chain ID</label>
+            <select id="defaultNetwork" class="input-field">
+              <option value="1">Ethereum Mainnet (1)</option>
+              <option value="137">Polygon (137)</option>
+              <option value="56">BNB Chain (56)</option>
+              <option value="42161">Arbitrum One (42161)</option>
+              <option value="10">Optimism (10)</option>
+              <option value="8453">Base (8453)</option>
+              <option value="43114">Avalanche (43114)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>RPC URL Customizado (opcional)</label>
+            <input type="text" id="customRpc" class="input-field" placeholder="https://..." />
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <h3 class="settings-group-title">⛽ Gas & Segurança</h3>
+          <div class="form-group">
+            <label>Gas Price Multiplier</label>
+            <select id="gasPriceMultiplier" class="input-field">
+              <option value="1">Normal (1x)</option>
+              <option value="1.2" selected>Rápido (1.2x)</option>
+              <option value="1.5">Urgente (1.5x)</option>
+              <option value="2">Muito Urgente (2x)</option>
+            </select>
+          </div>
+          <div class="toggle-row">
+            <label>Confirmação antes de transações</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="confirmToggle" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="toggle-row">
+            <label>Salvar histórico local</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="historyToggle" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-actions">
+          <button class="btn-primary" id="saveSettingsBtn">💾 Salvar Configurações</button>
+          <button class="btn-secondary" id="clearDataBtn">🗑 Limpar Dados Locais</button>
+        </div>
+      </section>
+
+      <!-- Confirmation Modal -->
+      <div id="confirmModal" class="modal-overlay hidden">
+        <div class="modal-card">
+          <h3 class="modal-title">Confirmar Transação</h3>
+          <div id="confirmDetails" class="confirm-details"></div>
+          <div class="modal-actions">
+            <button class="btn-secondary" id="cancelConfirm">Cancelar</button>
+            <button class="btn-primary btn-danger" id="approveConfirm">Confirmar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TX Pending Modal -->
+      <div id="pendingModal" class="modal-overlay hidden">
+        <div class="modal-card center">
+          <div class="pending-spinner"></div>
+          <h3 class="modal-title">Transação Enviada</h3>
+          <p id="pendingTxHash" class="tx-hash-display"></p>
+          <button class="btn-secondary" id="closePending">Fechar</button>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-screen="dashboardScreen">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Início</span>
+      </button>
+      <button class="nav-btn" data-screen="withdrawScreen">
+        <span class="nav-icon">⬇</span>
+        <span class="nav-label">Saque</span>
+      </button>
+      <button class="nav-btn" data-screen="transferScreen">
+        <span class="nav-icon">➡</span>
+        <span class="nav-label">Transferir</span>
+      </button>
+      <button class="nav-btn" data-screen="swapScreen">
+        <span class="nav-icon">⇄</span>
+        <span class="nav-label">Swap</span>
+      </button>
+      <button class="nav-btn" data-screen="historyScreen">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">Histórico</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js" type="application/javascript"></script>
+  <script src="js/config.js"></script>
+  <script src="js/alchemy.js"></script>
+  <script src="js/wallet.js"></script>
+  <script src="js/contract.js"></script>
+  <script src="js/transactions.js"></script>
+  <script src="js/swap.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
